@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "mdq100/Qwen3-Coder-30B-A3B-Instruct:30b": {
+          "name": "Qwen3-Coder-30B-A3B"
+        },
+        "devstral-2:123b-cloud": {
+          "name": "devstral-2:123b-cloud"
+        },
+        "gemini-3-pro-preview:latest": {
+          "name": "gemini-3-pro-preview:latest"
+        }
+      }
+    }
+  }
+}
