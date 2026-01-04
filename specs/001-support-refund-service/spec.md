@@ -5,6 +5,24 @@
 **Status**: Draft  
 **Input**: User description: "Create a customer support and refund service within the web shop for designer furniture. The service allows for support cases and refund cases based on orders and their products. Customers can open and close support cases and request refunds for products from an open support case. When a refund is requested, a refund case is created and linked to the support case. The customer support can approve and execute refund cases, if the refund is requested within 14 days after product arrived at the customer. Not all products of an order have to be refunded, if not requested by the customer. The service provides overview pages for support cases and refund cases showing their current status, customer, and history."
 
+## Clarifications
+
+### Session 2026-01-05
+
+- Q: What should be explicitly declared as out-of-scope for this feature? → A: Order management functionality and payment processing integration details
+- Q: What are the identity and uniqueness rules for Support Case and Refund Case entities? → A: Globally unique IDs only (no business key constraints)
+- Q: What are the complete lifecycle and state transitions for Support Case and Refund Case? → A: Explicit state transitions with validation rules
+- Q: What are the scalability requirements beyond the 100+ concurrent support agents mentioned? → A: Horizontal scaling with stateless services
+- Q: What security and privacy details should be specified for authentication and data protection? → A: JWT with role-based access control (Customer vs Support Agent roles)
+
+## Out of Scope
+
+- **OS-001**: Order management functionality - integration with existing order system only, no new order management features
+- **OS-002**: Payment processing integration details - focus on case management and eligibility, payment execution handled by existing payment service
+- **OS-003**: Customer registration and authentication system - use existing auth system (JWT-based)
+- **OS-004**: Email delivery infrastructure - use existing notification service, specify events to trigger only
+
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--
@@ -116,10 +134,17 @@ Customers can view overview pages showing all their support cases and refund cas
 - **FR-018**: System MUST provide search and filter capabilities for support and refund case overview pages
 - **FR-019**: System MUST implement proper authentication and authorization for all support and refund operations
 
+### Non-Functional Requirements
+
+- **NFR-001**: System MUST support horizontal scaling with stateless services to handle increasing load
+- **NFR-002**: System MUST implement JWT-based authentication with role-based access control (Customer vs Support Agent roles)
+- **NFR-003**: System MUST protect sensitive customer data with appropriate encryption and access controls
+- **NFR-004**: System MUST implement rate limiting to prevent abuse (100 requests/minute for customers, 500 for agents)
+- **NFR-005**: System MUST provide comprehensive logging for audit and debugging purposes
 ### Key Entities *(include if feature involves data)*
 
-- **Support Case**: Represents a customer support request, containing order reference, selected products, issue description, status (Open/Closed), creation date, and history of actions
-- **Refund Case**: Represents a refund request, containing support case reference, product details, refund amount, status (Pending/Approved/Rejected/Completed), eligibility validation, processing dates, and history
+- **Support Case**: Represents a customer support request, containing order reference, selected products, issue description, status (Open/Closed), creation date, and history of actions. **Identity**: Globally unique ID. **State Transitions**: Created → Open → Closed (cannot reopen; validation prevents closing with pending refunds)
+- **Refund Case**: Represents a refund request, containing support case reference, product details, refund amount, status (Pending/Approved/Rejected/Completed), eligibility validation, processing dates, and history. **Identity**: Globally unique ID. **State Transitions**: Created → Pending → (Approved|Rejected) → Completed
 - **Order**: Existing entity that refund cases reference, containing products, delivery dates, and payment information
 - **Product**: Existing entity referenced by both support and refund cases, containing price, description, and other attributes
 - **Customer**: Existing entity that owns support and refund cases
@@ -137,3 +162,5 @@ Customers can view overview pages showing all their support cases and refund cas
 - **SC-006**: Email notifications are delivered within 1 minute of case status changes
 - **SC-007**: System handles concurrent operations from 100+ support agents without data corruption or performance degradation
 - **SC-008**: Customer satisfaction rating for support and refund process maintains ≥4.5/5.0 based on post-interaction surveys
+- **SC-009**: System scales horizontally to support increasing user load without architectural changes
+- **SC-010**: Authentication and authorization maintain 100% correctness with no role-based access violations

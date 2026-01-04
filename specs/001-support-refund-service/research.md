@@ -14,7 +14,7 @@
 
 ### Decision: Python 3.12 + FastAPI for Backend
 - **Rationale**: Constitution specifies Python 3.12+ with FastAPI. FastAPI provides excellent support for RESTful APIs, type hints, and async capabilities.
-- **Alternatives considered**: Django, Flask - but FastAPI better alignes with modern API development and performance requirements.
+- **Alternatives considered**: Django, Flask - but FastAPI better aligns with modern API development and performance requirements.
 
 ### Decision: React 18 + TypeScript for Frontend
 - **Rationale**: Constitution specifies React 18+ with TypeScript. This provides strong typing, component-based architecture, and excellent ecosystem support.
