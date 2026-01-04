@@ -1,0 +1,630 @@
+openapi: 3.0.3
+info:
+  title: Customer Support and Refund Service API
+  description: API for managing customer support cases and refund requests
+  version: 1.0.0
+servers:
+  - url: https://api.furnitureshop.com/v1
+    description: Production server
+  - url: http://localhost:8000/v1
+    description: Development server
+
+paths:
+  /support/cases:
+    post:
+      tags:
+        - Support Cases
+      summary: Create a new support case
+      description: Customers can create support cases for their orders
+      operationId: createSupportCase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportCaseCreate'
+      responses:
+        '201':
+          description: Support case created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportCase'
+        '400':
+          description: Invalid input data
+        '401':
+          description: Unauthorized
+        '404':
+          description: Order not found
+      security:
+        - customerAuth: []
+    
+    get:
+      tags:
+        - Support Cases
+      summary: Get all support cases for current customer
+      description: Returns list of support cases for the authenticated customer
+      operationId: getCustomerSupportCases
+      parameters:
+        - $ref: '#/components/parameters/statusFilter'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: List of support cases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SupportCase'
+        '401':
+          description: Unauthorized
+      security:
+        - customerAuth: []
+
+  /support/cases/{caseId}:
+    get:
+      tags:
+        - Support Cases
+      summary: Get support case details
+      description: Get detailed information about a specific support case
+      operationId: getSupportCase
+      parameters:
+        - $ref: '#/components/parameters/caseId'
+      responses:
+        '200':
+          description: Support case details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportCaseDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not your case)
+        '404':
+          description: Support case not found
+      security:
+        - customerAuth: []
+    
+    patch:
+      tags:
+        - Support Cases
+      summary: Close a support case
+      description: Customers can close their own support cases
+      operationId: closeSupportCase
+      parameters:
+        - $ref: '#/components/parameters/caseId'
+      responses:
+        '200':
+          description: Support case closed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportCase'
+        '400':
+          description: Cannot close case with pending refunds
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not your case)
+        '404':
+          description: Support case not found
+      security:
+        - customerAuth: []
+
+  /support/cases/{caseId}/refunds:
+    post:
+      tags:
+        - Refund Cases
+      summary: Request refund from support case
+      description: Create a refund request from an existing support case
+      operationId: createRefundRequest
+      parameters:
+        - $ref: '#/components/parameters/caseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequestCreate'
+      responses:
+        '201':
+          description: Refund case created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundCase'
+        '400':
+          description: Invalid refund request or eligibility issues
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not your case)
+        '404':
+          description: Support case not found
+      security:
+        - customerAuth: []
+
+  /refunds/cases:
+    get:
+      tags:
+        - Refund Cases
+      summary: Get all refund cases for current customer
+      description: Returns list of refund cases for the authenticated customer
+      operationId: getCustomerRefundCases
+      parameters:
+        - $ref: '#/components/parameters/statusFilter'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: List of refund cases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RefundCase'
+        '401':
+          description: Unauthorized
+      security:
+        - customerAuth: []
+
+  /refunds/cases/{refundId}:
+    get:
+      tags:
+        - Refund Cases
+      summary: Get refund case details
+      description: Get detailed information about a specific refund case
+      operationId: getRefundCase
+      parameters:
+        - $ref: '#/components/parameters/refundId'
+      responses:
+        '200':
+          description: Refund case details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundCaseDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (not your case)
+        '404':
+          description: Refund case not found
+      security:
+        - customerAuth: []
+
+  /admin/refunds/cases:
+    get:
+      tags:
+        - Admin Refund Cases
+      summary: Get all refund cases (admin)
+      description: Returns list of all refund cases for support agents
+      operationId: getAllRefundCases
+      parameters:
+        - $ref: '#/components/parameters/statusFilter'
+        - $ref: '#/components/parameters/customerFilter'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: List of refund cases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RefundCaseAdmin'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (admin only)
+      security:
+        - adminAuth: []
+
+  /admin/refunds/cases/{refundId}:
+    get:
+      tags:
+        - Admin Refund Cases
+      summary: Get refund case details (admin)
+      description: Get detailed information about a specific refund case for processing
+      operationId: getRefundCaseAdmin
+      parameters:
+        - $ref: '#/components/parameters/refundId'
+      responses:
+        '200':
+          description: Refund case details with admin information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundCaseAdminDetail'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (admin only)
+        '404':
+          description: Refund case not found
+      security:
+        - adminAuth: []
+
+  /admin/refunds/cases/{refundId}/approve:
+    post:
+      tags:
+        - Admin Refund Cases
+      summary: Approve refund case
+      description: Support agents can approve eligible refund requests
+      operationId: approveRefundCase
+      parameters:
+        - $ref: '#/components/parameters/refundId'
+      responses:
+        '200':
+          description: Refund case approved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundCase'
+        '400':
+          description: Refund case not eligible or already processed
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (admin only)
+        '404':
+          description: Refund case not found
+      security:
+        - adminAuth: []
+
+  /admin/refunds/cases/{refundId}/reject:
+    post:
+      tags:
+        - Admin Refund Cases
+      summary: Reject refund case
+      description: Support agents can reject invalid refund requests
+      operationId: rejectRefundCase
+      parameters:
+        - $ref: '#/components/parameters/refundId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRejection'
+      responses:
+        '200':
+          description: Refund case rejected successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundCase'
+        '400':
+          description: Refund case already processed
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (admin only)
+        '404':
+          description: Refund case not found
+      security:
+        - adminAuth: []
+
+components:
+  schemas:
+    SupportCase:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [Open, Closed]
+        createdAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required: [id, customerId, orderId, status, createdAt]
+
+    SupportCaseDetail:
+      allOf:
+        - $ref: '#/components/schemas/SupportCase'
+        - type: object
+          properties:
+            issueDescription:
+              type: string
+            products:
+              type: array
+              items:
+                $ref: '#/components/schemas/SupportCaseProduct'
+            attachments:
+              type: array
+              items:
+                $ref: '#/components/schemas/Attachment'
+
+    SupportCaseCreate:
+      type: object
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportCaseProductCreate'
+        issueDescription:
+          type: string
+          minLength: 10
+          maxLength: 2000
+        attachments:
+          type: array
+          items:
+            type: string
+            format: binary
+      required: [orderId, products, issueDescription]
+
+    SupportCaseProduct:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        price:
+          type: number
+          format: decimal
+          minimum: 0
+      required: [productId, quantity, name, price]
+
+    SupportCaseProductCreate:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+      required: [productId, quantity]
+
+    RefundCase:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        supportCaseId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [Pending, Approved, Rejected, Completed]
+        eligibilityStatus:
+          type: string
+          enum: [Eligible, Partially Eligible, Ineligible]
+        totalRefundAmount:
+          type: number
+          format: decimal
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+        processedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required: [id, supportCaseId, customerId, orderId, status, eligibilityStatus, totalRefundAmount, createdAt]
+
+    RefundCaseDetail:
+      allOf:
+        - $ref: '#/components/schemas/RefundCase'
+        - type: object
+          properties:
+            products:
+              type: array
+              items:
+                $ref: '#/components/schemas/RefundCaseProduct'
+            rejectionReason:
+              type: string
+              nullable: true
+
+    RefundCaseAdmin:
+      allOf:
+        - $ref: '#/components/schemas/RefundCase'
+        - type: object
+          properties:
+            customerName:
+              type: string
+            customerEmail:
+              type: string
+
+    RefundCaseAdminDetail:
+      allOf:
+        - $ref: '#/components/schemas/RefundCaseDetail'
+        - type: object
+          properties:
+            orderDetails:
+              $ref: '#/components/schemas/OrderSummary'
+            customerDetails:
+              $ref: '#/components/schemas/CustomerSummary'
+
+    RefundRequestCreate:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/RefundRequestProduct'
+      required: [products]
+
+    RefundRequestProduct:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+      required: [productId, quantity]
+
+    RefundCaseProduct:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        price:
+          type: number
+          format: decimal
+          minimum: 0
+        refundAmount:
+          type: number
+          format: decimal
+          minimum: 0
+        deliveryDate:
+          type: string
+          format: date
+        eligibility:
+          type: string
+          enum: [Eligible, Ineligible]
+      required: [productId, quantity, name, price, refundAmount, deliveryDate, eligibility]
+
+    RefundRejection:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 500
+      required: [reason]
+
+    OrderSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        totalAmount:
+          type: number
+          format: decimal
+        status:
+          type: string
+
+    CustomerSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        url:
+          type: string
+          format: uri
+
+  parameters:
+    caseId:
+      name: caseId
+      in: path
+      description: Support case ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    refundId:
+      name: refundId
+      in: path
+      description: Refund case ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    statusFilter:
+      name: status
+      in: query
+      description: Filter by status
+      schema:
+        type: string
+
+    customerFilter:
+      name: customerId
+      in: query
+      description: Filter by customer ID
+      schema:
+        type: string
+        format: uuid
+
+    limit:
+      name: limit
+      in: query
+      description: Limit number of results
+      schema:
+        type: integer
+        default: 50
+        minimum: 1
+        maximum: 100
+
+    offset:
+      name: offset
+      in: query
+      description: Pagination offset
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+
+  securitySchemes:
+    customerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Customer authentication token
+
+    adminAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Admin/support agent authentication token

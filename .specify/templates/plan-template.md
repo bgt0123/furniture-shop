@@ -18,8 +18,8 @@
 -->
 
 **Language/Version**: [e.g., Python 3.12, TypeScript 5.4, or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, React 18, PostgreSQL or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, Redis, or N/A]  
+**Primary Dependencies**: [e.g., FastAPI, React 18, SQLite or NEEDS CLARIFICATION]  
+**Storage**: [if applicable, e.g., SQLite, Redis, or N/A]  
 **Testing**: [e.g., pytest, Jest, or NEEDS CLARIFICATION]  
 **Target Platform**: [e.g., Web application, Linux server, or NEEDS CLARIFICATION]
 **Project Type**: [single/web/mobile - determines source structure]
