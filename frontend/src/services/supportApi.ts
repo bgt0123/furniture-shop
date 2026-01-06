@@ -40,8 +40,8 @@ class SupportApiClient {
     return this.instance.patch(`/cases/${caseId}`, updateData)
   }
   
-  async closeSupportCase(token: string, caseId: string): Promise<AxiosResponse> {
-    return this.instance.patch(`/cases/${caseId}`, { status: 'Closed' })
+   async getRefundCases(token: string): Promise<AxiosResponse> {
+    return this.instance.get('/cases/refunds')
   }
 }
 

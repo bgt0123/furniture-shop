@@ -4,61 +4,99 @@ import { Layout } from '../../components/Layout'
 import { SupportCaseForm } from '../../components/SupportCaseForm'
 import { SupportCaseList } from '../../components/SupportCaseList'
 import { SupportCaseDetail } from '../../components/SupportCaseDetail'
+import { CaseHistory } from '../../components/CaseHistory'
+import { SupportHistory } from '../../components/SupportHistory'
 import { supportApi } from '../../services/supportApi'
 import { SupportCase } from '../../types/supportTypes'
+import { RefundCase } from '../../types/refundTypes'
 import { Button } from '../../components/Button'
 
 interface SupportDashboardProps {
   token: string
 }
 
+interface SupportDashboardState {
+  activeView: 'list' | 'create' | 'detail' | 'history' | 'support-history'
+  selectedCaseId: string | null
+  cases: SupportCase[]
+  refundCases: RefundCase[]
+  isLoading: boolean
+  error: string | null
+}
+
 export const SupportDashboard: React.FC<SupportDashboardProps> = ({ token }) => {
-  const [activeView, setActiveView] = useState<'list' | 'create' | 'detail'>('list')
-  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null)
-  const [cases, setCases] = useState<SupportCase[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [state, setState] = useState<SupportDashboardState>({
+    activeView: 'list',
+    selectedCaseId: null,
+    cases: [],
+    refundCases: [],
+    isLoading: true,
+    error: null
+  })
   const navigate = useNavigate()
 
   useEffect(() => {
-    const fetchCases = async () => {
+    const fetchData = async () => {
       try {
-        setIsLoading(true)
-        setError(null)
-        
+        setState(prev => ({ ...prev, isLoading: true, error: null }))
+
+        // Fetch support cases
         supportApi.setAuthToken(token)
-        const response = await supportApi.getSupportCases()
-        setCases(response.data.cases || [])
+        const supportResponse = await supportApi.getSupportCases()
+        const supportCases = supportResponse.data.cases || []
+
+        // Fetch refund cases for history view
+        const refundResponse = await supportApi.getRefundCases()
+        const refundCases = refundResponse.data.refunds || []
+
+        setState(prev => ({
+          ...prev,
+          cases: supportCases,
+          refundCases: refundCases,
+          isLoading: false
+        }))
       } catch (err) {
-        console.error('Error fetching support cases:', err)
-        setError('Failed to load support cases. Please try again.')
-      } finally {
-        setIsLoading(false)
+        console.error('Error fetching data:', err)
+        setState(prev => ({ ...prev, error: 'Failed to load data. Please try again.', isLoading: false }))
       }
     }
-    
+
     if (token) {
-      fetchCases()
+      fetchData()
     }
   }, [token])
 
   const handleCaseCreated = (newCase: SupportCase) => {
-    setCases([...cases, newCase])
-    setActiveView('list')
+    setState(prev => ({
+      ...prev,
+      cases: [...prev.cases, newCase]
+    }))
+    setState(prev => ({ ...prev, activeView: 'list' }))
   }
 
   const handleViewDetails = (caseId: string) => {
-    setSelectedCaseId(caseId)
-    setActiveView('detail')
+    setState(prev => ({ ...prev, selectedCaseId: caseId, activeView: 'detail' }))
   }
 
   const handleBackToList = () => {
-    setActiveView('list')
-    setSelectedCaseId(null)
+    setState(prev => ({ ...prev, activeView: 'list', selectedCaseId: null }))
+  }
+
+  const handleViewHistory = () => {
+    setState(prev => ({ ...prev, activeView: 'history' }))
+  }
+
+  const handleViewSupportHistory = () => {
+    setState(prev => ({ ...prev, activeView: 'support-history' }))
+  }
+
+  const handleViewRefundCase = (refundId: string) => {
+    // Navigate to refund dashboard or show refund details
+    navigate(`/refunds/${refundId}`)
   }
 
   const renderContent = () => {
-    switch (activeView) {
+    switch (state.activeView) {
       case 'create':
         return (
           <SupportCaseForm 
@@ -74,11 +112,29 @@ export const SupportDashboard: React.FC<SupportDashboardProps> = ({ token }) => 
           />
         )
       
+      case 'history':
+        return (
+          <CaseHistory
+            supportCases={state.cases}
+            refundCases={state.refundCases}
+            onViewSupportCase={handleViewDetails}
+            onViewRefundCase={handleViewRefundCase}
+          />
+        )
+      
+      case 'support-history':
+        return (
+          <SupportHistory
+            cases={state.cases}
+            onViewDetails={handleViewDetails}
+          />
+        )
+      
       case 'list':
       default:
         return (
           <SupportCaseList 
-            cases={cases} 
+            cases={state.cases} 
             onViewDetails={handleViewDetails} 
             token={token}
           />
@@ -92,38 +148,64 @@ export const SupportDashboard: React.FC<SupportDashboardProps> = ({ token }) => 
         <div className="dashboard-header">
           <h1>Support Dashboard</h1>
           
-          <div className="dashboard-actions">
-            {activeView === 'list' && (
-              <Button 
-                variant="primary" 
-                onClick={() => setActiveView('create')}
-              >
-                Create Support Case
-              </Button>
-            )}
+        <div className="dashboard-actions">
+          {state.activeView === 'list' && (
+            <Button 
+              variant="primary" 
+              onClick={() => setState(prev => ({ ...prev, activeView: 'create' }))}
+            >
+              Create Support Case
+            </Button>
+          )}
+           
+          <div className="view-toggle">
+            <Button
+              variant={state.activeView === 'list' ? 'primary' : 'secondary'}
+              onClick={() => setState(prev => ({ ...prev, activeView: 'list' }))}
+              size="small"
+            >
+              Current Cases
+            </Button>
             
-            {activeView !== 'list' && (
-              <Button 
-                variant="secondary" 
-                onClick={handleBackToList}
-              >
-                Back to List
-              </Button>
-            )}
+            <Button
+              variant={state.activeView === 'history' ? 'primary' : 'secondary'}
+              onClick={handleViewHistory}
+              size="small"
+            >
+              All History
+            </Button>
+            
+            <Button
+              variant={state.activeView === 'support-history' ? 'primary' : 'secondary'}
+              onClick={handleViewSupportHistory}
+              size="small"
+            >
+              Support History
+            </Button>
           </div>
+          
+          {state.activeView !== 'list' && (
+            <Button 
+              variant="secondary" 
+              onClick={handleBackToList}
+            >
+              Back to List
+            </Button>
+          )}
+        </div>
         </div>
 
-        {error && (
+        {state.error && (
           <div className="error-banner">
-            <p>{error}</p>
-            <Button variant="secondary" onClick={() => setError(null)}>
+            <p>{state.error}</p>
+            <Button variant="secondary" onClick={() => setState(prev => ({ ...prev, error: null }))}>
               Dismiss
             </Button>
           </div>
         )}
 
         <div className="dashboard-content">
-          {isLoading && activeView === 'list' ? (
+          {state.isLoading && state.activeView === 'list' ? (
             <div className="loading">Loading support cases...</div>
           ) : (
             renderContent()

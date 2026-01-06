@@ -150,14 +150,14 @@
 
 ### Implementation for User Story 4
 
-- [ ] T058 [P] [US4] Create CaseHistory component in frontend/src/components/CaseHistory.tsx
-- [ ] T059 [P] [US4] Create SupportHistory component in frontend/src/components/SupportHistory.tsx
-- [ ] T060 [P] [US4] Create RefundHistory component in frontend/src/components/RefundHistory.tsx
-- [ ] T061 [US4] Extend SupportDashboard page with history view in frontend/src/pages/SupportDashboard.tsx
-- [ ] T062 [US4] Extend RefundDashboard page with history view in frontend/src/pages/RefundDashboard.tsx
-- [ ] T063 [US4] Implement history API endpoints if needed
-- [ ] T064 [US4] Add search and filter functionality to history views
-- [ ] T065 [US4] Implement pagination for large history lists
+- [x] T058 [P] [US4] Create CaseHistory component in frontend/src/components/CaseHistory.tsx
+- [x] T059 [P] [US4] Create SupportHistory component in frontend/src/components/SupportHistory.tsx
+- [x] T060 [P] [US4] Create RefundHistory component in frontend/src/components/RefundHistory.tsx
+- [x] T061 [US4] Extend SupportDashboard page with history view in frontend/src/pages/SupportDashboard.tsx
+- [x] T062 [US4] Extend RefundDashboard page with history view in frontend/src/pages/RefundDashboard.tsx
+- [x] T063 [US4] Implement history API endpoints if needed
+- [x] T064 [US4] Add search and filter functionality to history views
+- [x] T065 [US4] Implement pagination for large history lists
 
 **Checkpoint**: Customer history functionality is complete. All user stories are now fully implemented.
 

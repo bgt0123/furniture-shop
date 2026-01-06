@@ -36,8 +36,8 @@ class RefundApiClient {
     return this.instance.post(`/support/cases/${caseId}/refunds`, { products })
   }
   
-  async getCustomerRefundCases(token: string, params?: any): Promise<AxiosResponse> {
-    return this.instance.get('/cases', { params })
+   async getSupportCases(token: string): Promise<AxiosResponse> {
+    return this.instance.get('/support/cases')
   }
 }
 
